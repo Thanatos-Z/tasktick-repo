@@ -1,0 +1,82 @@
+Final F3 real manual QA — blender-codex-workspace-docs
+Date: 2026-07-10
+Verdict: PASS
+
+Scope and safety
+- Read-only QA of the installed README.md and AGENTS.md under "/Users/youzhi/workspace/blender space".
+- No target file was edited. No model, directory, or script was created.
+- The documented create_model.py command was never executed; its text was only converted to positional parameters with shell `set --`.
+
+1. Installed document readability and full review
+Command summary:
+  wc -l, file, test -r, test -s, and full sed reads of both installed files.
+Exact result:
+  command exit 0
+  README.md: 54 lines; Unicode UTF-8 text; readable and non-empty
+  AGENTS.md: 44 lines; Unicode UTF-8 text; readable and non-empty
+  sed displayed all 54 README lines and all 44 AGENTS lines without truncation or read error.
+Impact:
+  Both installed documents are usable from the real target path, including the space in the directory name.
+
+2. Real Blender version surface
+Documented command executed exactly:
+  "/Applications/Blender.app/Contents/MacOS/Blender" --version
+Exact result:
+  exit 0
+  reported Blender 5.1.2, Darwin Release build
+  output was readable and included build metadata
+  startup also emitted a non-fatal ArchWarn about a cache-line-size assumption
+Assessment:
+  The installed executable and README version claim agree. The warning does not invalidate this version probe because the version was printed and the process exited 0; it remains a runtime observation to retain if later Blender behavior is investigated.
+
+3. README example extraction and shell-only parse
+Extraction:
+  awk selected the first fenced sh line containing Blender, --background, and --python from the installed README.
+Extracted text:
+  "/Applications/Blender.app/Contents/MacOS/Blender" --background --python "/Users/youzhi/workspace/blender space/scripts/create_model.py"
+Parse method:
+  bash evaluated only `set -- <extracted text>` and printed the resulting positional arguments. It did not invoke argv[1].
+Exact result:
+  parse exit 0
+  argc=4
+  argv1=/Applications/Blender.app/Contents/MacOS/Blender
+  argv2=--background
+  argv3=--python
+  argv4=/Users/youzhi/workspace/blender space/scripts/create_model.py
+  exact four-argument assertion exit 0
+Impact:
+  Both full paths survive shell parsing intact; `blender space` is one path component, not two arguments.
+
+4. Negative path-with-spaces and absent-script checks
+Negative parse:
+  Removed only the example's double quotes and parsed with `set --`; no executable was invoked.
+Exact result:
+  argc=5
+  argv4=/Users/youzhi/workspace/blender
+  argv5=space/scripts/create_model.py
+  assertion that the unquoted form is not four arguments: exit 0
+Impact:
+  This reproduces the concrete failure prevented by README's instruction to quote all paths containing spaces.
+
+Absent example script:
+  test -e "/Users/youzhi/workspace/blender space/scripts/create_model.py"
+Exact result:
+  exit 1 (expected absent)
+Impact:
+  The README command is an example for a future script, not a presently runnable success path. The QA did not create or run it.
+
+5. Failure guidance and misleading-success probe
+Targeted rg across both installed files matched all checked guidance; exit 0.
+Verified guidance:
+  - README says to confirm the Blender executable path and re-run --version when it is missing or moved.
+  - README workflow requires writing and reviewing create_model.py before the example command.
+  - README treats Python exceptions/nonzero exit as failure and requires retaining logs.
+  - README explicitly requires quoting Blender, script, and output paths and warns not to split `blender space`.
+  - README says no output file means success must not be claimed.
+  - AGENTS says exit 0 alone is insufficient and forbids using stale files, success-looking log text, or partial output as proof.
+  - AGENTS requires the expected output path to exist and have size greater than zero, plus visual review when applicable.
+Impact:
+  The documents do not encourage misleading success. Missing executable and missing/not-yet-created script cases have an actionable check/order of operations, and later modeling runs must verify new non-empty outputs rather than trust process status or log wording alone.
+
+Conclusion
+PASS. The real installed documentation is readable; the documented Blender version command works; the quoted example has exactly four arguments; the unquoted negative case demonstrates the space-path hazard; the absent script remains unexecuted; and the installed guidance covers missing paths and false-positive success conditions.

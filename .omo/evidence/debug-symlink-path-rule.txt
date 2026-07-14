@@ -1,0 +1,48 @@
+Security debugging record — canonical-path/symlink escape rule
+Captured: 2026-07-10 (Asia/Kathmandu)
+Scope: staged AGENTS.md, installed AGENTS.md, and designated evidence only.
+
+STATUS: PARTIAL / INSTALL BLOCKED BY APPROVAL QUOTA
+
+1. Hypotheses and distinguishing checks
+- H1 CONFIRMED: the rule is absent. Distinguishing probe `rg -n '规范路径|符号链接|已存在.*父目录|写入前'` exited 1 for both staged and installed documents.
+- H2 REFUTED: the rule does not already exist in ambiguous wording; all four identifying policy terms/families are absent.
+- H3 REFUTED: fresh NUL-safe recursive enumeration found `SYMLINK_COUNT=0`; the exact target has three regular files and no directory, symlink, or unknown entry.
+- Impact: the durable contract prohibited writes outside the workspace but did not require canonical containment or reject symlink components, leaving a policy-level path-escape gap.
+
+2. Exact RED reproduction, twice
+Assertion: one bullet must contain all of `写入前`, `目标路径`, `已存在.*父目录`, `规范路径`, containment within the exact reviewed root, and `默认拒绝.*符号链接`.
+- RED round 1: staged exit 1; installed exit 1.
+- RED round 2: staged exit 1; installed exit 1.
+- Both failures printed: `POLICY_ASSERT=FAIL missing one concise canonical-containment/symlink-rejection bullet`.
+- A discarded harness attempt used zsh's read-only variable `status` and stopped after the first assertion; it was not counted as either complete RED round and created no artifact.
+
+3. Minimal fix and toggle proof
+- Staged edit: one bullet only, requiring canonical resolution of the target path and existing parent directories, exact containment in `/Users/youzhi/workspace/blender space/`, and default rejection of any symlink in the path.
+- Before installation: old installed exit 1; new staged exit 0; combined toggle assertion exit 0.
+- Root cause confirmed: toggling only the missing bullet toggles the exact policy assertion.
+
+4. GREEN and quality checks on staged document
+- exact policy assertion: exit 0.
+- unsafe wording negative scan (`允许/可使用符号链接`, skipping canonical/parent checks, or string-prefix-only authorization): exit 0, no match.
+- `file`: exit 0, Unicode UTF-8 text.
+- `test -s`: exit 0.
+- full policy-family assertion: exit 0.
+- direct no-contradiction evidence (`工作区外` prohibition plus canonical containment/default symlink rejection): exit 0.
+- Staged AGENTS SHA-256: `9737148b5f8065c5f01df861358d5bada6c868f7ba8b59b0ee132c6d113e86af`.
+
+5. Installation attempt and current state
+- A narrow elevated command was requested to validate non-symlink source/root/destination, validate the canonical parent equals the reviewed root, then run only `/bin/cp staged/AGENTS.md target/AGENTS.md`.
+- Approval result: rejected by automatic review because the current usage limit was reached. The shell process did not start, so there is no process exit code. This is an authorization/quota block, not a project or filesystem defect.
+- No workaround or indirect write was attempted.
+- Installed exact policy assertion remains RED, exit 1.
+- Installed AGENTS SHA-256 remains `49cec4f899b0fdf02400a2e9e751be0dbfb7582e17528ce6fbbf97cabb133cc4`.
+
+6. Scope preservation after denial
+- README staged and installed SHA-256 both remain `093d574788cef63543dc87d67dc466ff944221238012fe4578fc5899127f2a75`.
+- Exact target: 3 files, 0 directories, 0 symlinks, 0 unknown entries; allowlist assertion exit 0.
+- Icon baseline unchanged: size 0; mode `-rw-r--r--`; flags hidden; mtime/ctime/birth `1783677857`; inode `17885086`; data SHA-1 `da39a3ee5e6b4b0d3255bfef95601890afd80709`.
+- Icon xattrs unchanged: FinderInfo 32 bytes / `fcc3496b956f59705afd6425b11230d0376de4e1`; ResourceFork 531408 bytes / `9efca2bbf6086c80fc293f8f7b97ccb328bdf0f2`; provenance 11 bytes / `0e2934b6d951285d41f7a60c08e5b5f9d2fe8b89`.
+- No temp file, model, process, port, or mount was created; no `/tmp` cleanup was needed.
+
+Risk: staged policy is fixed, but the active installed workspace contract remains vulnerable until the single reviewed AGENTS.md overwrite is explicitly authorized and reverified.

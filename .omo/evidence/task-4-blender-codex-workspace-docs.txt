@@ -1,0 +1,94 @@
+Task 4 install and scope verification — blender-codex-workspace-docs
+Captured: 2026-07-10 (Asia/Kathmandu)
+Scope: install only staged README.md and AGENTS.md into "/Users/youzhi/workspace/blender space".
+
+RESULT: PASS
+
+1. Fresh pre-install guard
+Baseline read: .omo/evidence/task-1-blender-codex-workspace-docs.txt (exit 0).
+Commands: test ! -e target/README.md; test ! -e target/AGENTS.md.
+Exits: README absence=0; AGENTS absence=0.
+Fresh target entries: exactly $'Icon\r'; no README.md or AGENTS.md.
+Staged checks: test -s, file -I, shasum -a 256.
+Exits: all 0.
+Staged README SHA-256: 093d574788cef63543dc87d67dc466ff944221238012fe4578fc5899127f2a75
+Staged AGENTS SHA-256: 49cec4f899b0fdf02400a2e9e751be0dbfb7582e17528ce6fbbf97cabb133cc4
+
+Fresh Icon baseline before write:
+  size=0; mode=-rw-r--r--; flags=hidden
+  mtime=1783677857; ctime=1783677857; birth=1783677857; inode=17885086
+  SHA-1=da39a3ee5e6b4b0d3255bfef95601890afd80709
+  xattr names=com.apple.FinderInfo, com.apple.ResourceFork, com.apple.provenance
+  FinderInfo=32 bytes, SHA-1 fcc3496b956f59705afd6425b11230d0376de4e1
+  ResourceFork=531408 bytes, SHA-1 9efca2bbf6086c80fc293f8f7b97ccb328bdf0f2
+  provenance=11 bytes, SHA-1 0e2934b6d951285d41f7a60c08e5b5f9d2fe8b89
+All baseline capture commands exited 0. Attribute values were fingerprinted through a pipeline and were not written to evidence.
+
+2. Scoped installation
+Permission: approved narrow elevation for exactly these two reviewed files; no prefix rule requested.
+Command form:
+  set -e
+  test ! -e "$dst/README.md"
+  test ! -e "$dst/AGENTS.md"
+  cp -n "$src/README.md" "$dst/README.md"
+  cp -n "$src/AGENTS.md" "$dst/AGENTS.md"
+Combined command exit: 0.
+Semantics: both absence guards and both no-clobber copies completed sequentially; post-copy byte comparisons independently verify both outputs.
+
+3. Post-install automated verification
+README.md: test -s exit 0; file -I exit 0 and charset=utf-8; cmp -s staged/target exit 0.
+README target SHA-256: 093d574788cef63543dc87d67dc466ff944221238012fe4578fc5899127f2a75
+AGENTS.md: test -s exit 0; file -I exit 0 and charset=utf-8; cmp -s staged/target exit 0.
+AGENTS target SHA-256: 49cec4f899b0fdf02400a2e9e751be0dbfb7582e17528ce6fbbf97cabb133cc4
+test ! -e target/.git exit: 0.
+
+Exact NUL-safe allowlist assertion:
+  EXACT_ENTRY_COUNT=3
+  FILE_COUNT=3
+  DIR_COUNT=0
+  UNKNOWN_COUNT=0
+  FINAL_ASSERTIONS_EXIT=0
+Allowed entries: $'Icon\r', README.md, AGENTS.md.
+Impact: exactly the two approved documents were added; no target directory, Git metadata, dependency, model, script, render, export, or other entry was added.
+
+4. Icon post-install comparison
+Post-install size/mode/flags/mtime/ctime/birth/inode, data-fork SHA-1, xattr name set, and all three xattr length/SHA-1 fingerprints exactly match the pre-install and Todo 1 baselines above.
+Stat exit=0; SHA exit=0; xattr name exit=0; all xattr length/digest assertions exit=0.
+Impact: Icon data, metadata, flags, and extended attributes are unchanged.
+
+5. Manual QA
+Commands:
+  sed -n '1,240p' "/Users/youzhi/workspace/blender space/README.md"
+  sed -n '1,240p' "/Users/youzhi/workspace/blender space/AGENTS.md"
+Exits: README read=0; AGENTS read=0.
+Observable: both installed documents were read from the target, are complete Chinese Markdown, and match the reviewed staged content byte-for-byte.
+
+6. Adversarial probes
+stale_state: PASS — absence, Icon baseline, staged hashes, and exact target listing were freshly read immediately before installation; all target facts were freshly re-read afterward.
+dirty_worktree: PASS WITH SCOPE NOTE — pre-existing repository status remains `M AGENTS.md`, `M README.md`, `D backup-obsidian-vault.sh`, `?? .omo/`, `?? "Icon\r"`, `?? plugins/`; this task intentionally added only this evidence descendant under `.omo/` and the two out-of-repository target documents. No pre-existing tracked change was edited.
+misleading_success_output: PASS — copy exit 0 was not accepted alone. A first BSD awk NUL-record count misleadingly reported FILE_COUNT=1; that result was rejected and replaced with NUL-byte counting plus an exact basename allowlist. Corrected fresh result is 3 files, 0 directories, 0 unknown names, final assertion exit 0.
+unsafe_overwrite: PASS — both targets were absent immediately before copy and cp -n supplied no-clobber semantics. No existing target content was overwritten.
+repeated_interruption/partial_copy: PASS — the two sequential no-clobber copies completed without interruption; fresh target checks prove both destinations exist, are non-empty, and match staged bytes. No partial-copy cleanup was needed. If either copy had failed, the command would have stopped under set -e and any partial state would have been reported rather than deleted.
+path/control-character safety: PASS — target paths with spaces were quoted; NUL-safe enumeration and an exact $'Icon\r' allowlist handled the Finder control-character filename.
+
+7. Cleanup receipt
+No temporary directory, process, browser session, port, mount, or test artifact was created.
+Target cleanup: none performed and none needed. The installed deliverables remain in place; Icon was not modified.
+Evidence creation: this file was added with apply_patch as required.
+
+Risk: two copies are sequential rather than transactional. The requested failure policy was honored: no failure occurred; if a future interruption happens between copies, report the partial state and do not delete it without explicit authorization.
+
+SECURITY-FIX ADDENDUM — post-review AGENTS.md replacement
+Captured: 2026-07-10 (Asia/Kathmandu)
+Status: BLOCKED / NOT INSTALLED
+
+- The previously installed AGENTS.md passed the original Todo 4 scope checks but fails the new canonical-containment/symlink-rejection assertion: installed exit 1.
+- The corrected staged AGENTS.md passes that assertion: staged exit 0. Old installed RED versus new staged GREEN gives toggle assertion exit 0.
+- A narrow elevated overwrite was requested for only `/Users/youzhi/workspace/blender space/AGENTS.md`, guarded by regular-file/non-symlink checks and exact canonical-parent containment.
+- Automatic approval rejected the request because the current usage limit was reached; the shell process did not start, so no process exit code exists. No workaround or indirect write was attempted.
+- Fresh post-denial hashes: staged AGENTS `9737148b5f8065c5f01df861358d5bada6c868f7ba8b59b0ee132c6d113e86af`; installed AGENTS remains `49cec4f899b0fdf02400a2e9e751be0dbfb7582e17528ce6fbbf97cabb133cc4`.
+- README staged/installed hash remains `093d574788cef63543dc87d67dc466ff944221238012fe4578fc5899127f2a75`.
+- Exact target allowlist remains three regular files (`Icon\r`, README.md, AGENTS.md), with 0 directories, 0 symlinks, 0 unknown entries; assertion exit 0.
+- Icon data, stat fields, flags, and all three xattr fingerprints remain identical to the Todo 4 baseline.
+- Impact/risk: the active installed contract still has the security gap. Completion requires explicit authorization to overwrite only AGENTS.md, followed by installed GREEN, staged/target hash equality, README preservation, exact allowlist preservation, and full Icon baseline verification.
+- Detailed evidence: `.omo/evidence/debug-symlink-path-rule.txt`.

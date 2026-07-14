@@ -1,0 +1,16 @@
+{
+  "schema_version": 2,
+  "active_work_id": "blender-codex-workspace-docs",
+  "works": {
+    "blender-codex-workspace-docs": {
+      "work_id": "blender-codex-workspace-docs",
+      "active_plan": ".omo/plans/blender-codex-workspace-docs.md",
+      "plan_name": "blender-codex-workspace-docs",
+      "session_ids": [
+        "codex:019f4b75-8f9d-7770-a0e6-9ba10481ffc7"
+      ],
+      "status": "active",
+      "worktree_path": null
+    }
+  }
+}

@@ -1,0 +1,60 @@
+Final F2 Documentation Quality Review
+Target: /Users/youzhi/workspace/blender space/{README.md,AGENTS.md}
+Review date: 2026-07-10
+Verdict: PASS
+
+Scope and method
+- Read README.md (54 lines) and AGENTS.md (44 lines) end-to-end.
+- Target documents were reviewed read-only and were not edited.
+- Checked Simplified Chinese quality, directory semantics, command identity, contradictions/placeholders, volatile claims, audience separation, troubleshooting, overwrite safety, untrusted scripts, ownership, and environment freshness.
+
+1. Language and audience separation: PASS
+- README heading "# Codex + Blender 自动建模工作区" presents human onboarding: purpose, directory conventions, workflow, task input checklist, capability boundary, and troubleshooting. The language is concise, natural Simplified Chinese and avoids unexplained process jargon.
+- AGENTS heading "# Codex + Blender 工作区规则" is clearly normative for agents. Phrases such as "只做任务要求的最小改动" and "最终报告保持简洁" are operational rules rather than duplicated user onboarding.
+- The separation is correct: README tells a person what the workspace does and how to use it; AGENTS tells an agent what it may do and what evidence it must report.
+
+2. Directory semantics and ownership: PASS
+- README section "## 按需目录约定" explicitly says "以下目录目前尚未创建；仅在任务需要时按需创建".
+- AGENTS section "## 目录职责" consistently says "以下目录是按需约定，不代表已经存在".
+- Exact semantic mapping is consistent in both files: scripts=bpy source, references=input references, models=.blend projects, renders=visual/ delivered renders, exports=exchange files.
+- Filesystem check found only README.md, AGENTS.md, and Icon at workspace top level; scripts/, references/, models/, renders/, and exports/ are absent, matching the documented current state.
+- Ownership is unambiguous. README states "脚本生成的资产应能由脚本重新构建；人工编辑的资产仍需单独保留". AGENTS strengthens this with "人工编辑的 `.blend`、用户素材和手工调整结果必须保留，不能假定可由脚本重建". No generated/manual asset conflict was found.
+
+3. Exact command and path handling: PASS
+- The following command occurs exactly once in README.md line 32 and exactly once in AGENTS.md line 35, byte-for-byte identical:
+  "/Applications/Blender.app/Contents/MacOS/Blender" --background --python "/Users/youzhi/workspace/blender space/scripts/create_model.py"
+- Both executable and script paths are quoted. README troubleshooting explicitly says "始终用双引号包住 Blender、脚本和输出的完整路径；不要拆开 `blender space`". AGENTS repeats the quoting requirement. This prevents the workspace-space path from being split by the shell.
+
+4. Contradictions, placeholders, and volatile claims: PASS
+- Case-insensitive scan for TODO, TBD, FIXME, placeholder/占位, pricing/价格/收费/订阅, "最新", "当前版本", "永远", and "永久" returned no matches.
+- No pricing, service quota, current product specification, or other volatile commercial claim appears.
+- README capability boundary says it "不等同于 Hyper3D 等图像转 3D 生成服务" and "不承诺仅凭一张图片直接得到同等结果". This is a durable limitation statement, not a volatile service/spec claim.
+- No contradiction was found between README workflow and AGENTS requirements. README's simple success checks are strengthened, not contradicted, by AGENTS requiring correct path, non-empty file, exit-code review, and visual inspection.
+
+5. Environment freshness and exact verification: PASS
+- README section "## 已验证环境" dates the claim precisely: "截至 2026-07-10". It also warns "版本或设备变化后应重新验证，不要仅依据本文判断环境仍然可用", avoiding an evergreen/stale-environment implication.
+- Executed the documented quoted version command on 2026-07-10. It returned "Blender 5.1.2" and completed successfully.
+- Executed a read-only hardware probe. It returned "Chip: Apple M1 Pro" and "Memory: 32 GB", matching README. system_profiler also emitted "Error fetching hw.cpufamily: -1", but still returned the two requested fields; this warning does not contradict the reported chip or memory values.
+
+6. Troubleshooting and verification actionability: PASS
+- README section "## 故障排查" gives concrete actions for missing executable, traceback/nonzero exit, paths with spaces, unavailable render device, and missing output.
+- Failure semantics are explicit: "即使日志出现部分成功信息，也不能忽略非零退出码" and "没有输出文件时不得宣称任务成功".
+- AGENTS section "## 执行与验证" closes the false-positive gap: "退出码为零也不能单独证明成功", requires correct output path plus non-empty file, rejects stale files as evidence, and requires actual preview inspection for visual work.
+- User-visible impact: these checks prevent stale or empty artifacts and partial Blender runs from being reported as successful.
+
+7. Safety, overwrite behavior, and untrusted scripts: PASS
+- AGENTS section "## 资产与覆盖规则" defaults to new names/version suffixes and requires explicit user approval before overwriting any existing .blend, render, or export. It also forbids deleting user assets as cleanup.
+- AGENTS section "## 脚本与依赖安全" permits only scripts whose purpose/input/output paths were reviewed and explicitly forbids enabling or executing unknown embedded Python/autorun scripts from untrusted .blend files.
+- Dependency changes are bounded: no global Python packages, Blender plugins, or system dependencies; purpose/impact and user approval are required before an isolated workspace solution.
+- Workspace boundary is explicit under "## 适用范围与沟通": no modifying, moving, or deleting outside-workspace content, and no overwriting existing uncommitted work.
+- User-visible impact: the rules materially reduce accidental asset loss, execution of hostile Blender scripts, dependency pollution, and edits outside the authorized workspace.
+
+Potential ambiguity probes
+- Misleading wording: none found. "按需" is defined in both documents and confirmed by filesystem state.
+- Ambiguous ownership: none found; scripted and manually edited assets are distinguished explicitly.
+- Unsafe overwrite: none found; explicit approval is mandatory and versioned new output is the default.
+- Untrusted scripts: covered directly, including embedded Python and auto-execution state.
+- Stale environment claim: bounded by date, revalidation command, and warning; current values were independently rechecked.
+
+Final verdict: PASS
+No material documentation defect, contradiction, placeholder, unsafe instruction, or unverifiable current-state claim remains within the requested review scope. No target-file changes are recommended.

@@ -1,0 +1,140 @@
+Final F4 scope fidelity audit — blender-codex-workspace-docs
+Captured: 2026-07-10 (Asia/Kathmandu)
+Scope: read-only comparison of Todo 1 baseline with a fresh recursive state of "/Users/youzhi/workspace/blender space". The target was not edited. The only write was this evidence file, created with apply_patch.
+
+RESULT: PASS
+
+1. Baseline used
+
+Command:
+  sed -n '1,130p' .omo/evidence/task-1-blender-codex-workspace-docs.txt
+Exit: 0
+
+Todo 1 verified baseline:
+  - exactly one target entry, the regular file $'Icon\r'
+  - README.md absent; AGENTS.md absent
+  - no target Git repository
+  - Icon data SHA-1 da39a3ee5e6b4b0d3255bfef95601890afd80709
+  - Icon size=0, mode=-rw-r--r--, flags=hidden
+  - Icon mtime=1783677857, ctime=1783677857, birth=1783677857, inode=17885086
+  - Icon xattr names: com.apple.FinderInfo, com.apple.ResourceFork, com.apple.provenance
+  - FinderInfo: 32 bytes, SHA-1 fcc3496b956f59705afd6425b11230d0376de4e1
+  - ResourceFork: 531408 bytes, SHA-1 9efca2bbf6086c80fc293f8f7b97ccb328bdf0f2
+  - provenance: 11 bytes, SHA-1 0e2934b6d951285d41f7a60c08e5b5f9d2fe8b89
+
+Impact: this establishes the pre-change state against which additions and preservation are judged.
+
+2. Fresh recursive, byte-safe target enumeration
+
+Command (executed with /bin/bash; target path quoted):
+  while IFS= read -r -d '' p; do
+    rel=${p#"$TARGET"/}
+    printf '%q' "$rel"
+    classify the entry with -f/-d/-L and compare rel:type to the exact allowlist
+  done < <(find "$TARGET" -mindepth 1 -print0)
+
+Result:
+  entry[1]=$'Icon\r' type=file
+  entry[2]=README.md type=file
+  entry[3]=AGENTS.md type=file
+  find_exit=0 entry_count=3 file_count=3 dir_count=0 symlink_count=0 other_count=0 allow_ok=1
+
+Exact path/type/non-empty assertions:
+  README.md=PASS
+  AGENTS.md=PASS
+  Icon_CR=PASS
+  assert_exit=0
+
+Comparison with Todo 1: the sole baseline entry remains, and the set difference is exactly {README.md, AGENTS.md}. Recursive enumeration found no descendants beyond these three files.
+
+Impact: no directory, model, script, render, export, dependency, configuration, add-on, symlink, or unknown entry was added. NUL-delimited enumeration and shell-escaped display avoid false counts from the carriage return in Icon's filename or spaces in the target path.
+
+3. Installed-document fidelity and partial-copy probe
+
+Commands:
+  cmp -s "$STAGE/README.md" "$TARGET/README.md"
+  cmp -s "$STAGE/AGENTS.md" "$TARGET/AGENTS.md"
+  shasum -a 256 "$STAGE/README.md" "$TARGET/README.md"
+  shasum -a 256 "$STAGE/AGENTS.md" "$TARGET/AGENTS.md"
+
+Results:
+  README.md cmp_exit=0
+  staged README SHA-256=093d574788cef63543dc87d67dc466ff944221238012fe4578fc5899127f2a75
+  target README SHA-256=093d574788cef63543dc87d67dc466ff944221238012fe4578fc5899127f2a75
+  AGENTS.md cmp_exit=0
+  staged AGENTS SHA-256=49cec4f899b0fdf02400a2e9e751be0dbfb7582e17528ce6fbbf97cabb133cc4
+  target AGENTS SHA-256=49cec4f899b0fdf02400a2e9e751be0dbfb7582e17528ce6fbbf97cabb133cc4
+
+Staging enumeration command:
+  find "$STAGE" -mindepth 1 -print0 | NUL-safe exact-name loop
+Result:
+  stage[1]=README.md
+  stage[2]=AGENTS.md
+  stage_entry_count=2 stage_unknown_count=0
+
+Impact: both requested copies are present, non-empty, regular non-symlink files, and byte-for-byte match the only two staged artifacts. There is no partial-copy state and no staged artifact was silently omitted or expanded into target scope.
+
+4. Icon preservation
+
+Commands:
+  shasum "$ICON"
+  stat -f 'size=%z mode=%Sp flags=%Sf mtime=%m ctime=%c birth=%B inode=%i type=%HT' "$ICON"
+  xattr "$ICON" | LC_ALL=C sort
+  for each expected xattr: xattr -px "$a" "$ICON" | tr -d '[:space:]' | xxd -r -p, then wc -c and shasum
+
+Results (all capture commands exited 0):
+  data SHA-1=da39a3ee5e6b4b0d3255bfef95601890afd80709
+  size=0 mode=-rw-r--r-- flags=hidden mtime=1783677857 ctime=1783677857 birth=1783677857 inode=17885086 type=Regular File
+  xattr names, sorted:
+    com.apple.FinderInfo
+    com.apple.ResourceFork
+    com.apple.provenance
+  com.apple.FinderInfo present_exit=0 bytes=32 sha1=fcc3496b956f59705afd6425b11230d0376de4e1
+  com.apple.ResourceFork present_exit=0 bytes=531408 sha1=9efca2bbf6086c80fc293f8f7b97ccb328bdf0f2
+  com.apple.provenance present_exit=0 bytes=11 sha1=0e2934b6d951285d41f7a60c08e5b5f9d2fe8b89
+
+Comparison: every recorded Todo 1 data hash, stat value, xattr name, xattr byte length, and xattr digest matches exactly.
+
+Impact: the pre-existing Finder Icon file's data fork, filesystem metadata, flags, and extended attributes were not changed.
+
+5. Git and explicit scope-expansion probes
+
+Command:
+  git -C "$TARGET" rev-parse --is-inside-work-tree
+Result:
+  fatal: not a git repository (or any of the parent directories): .git
+  git_exit=128
+
+Command:
+  test absence for target/.git, scripts, references, models, renders, exports, dependencies, dependency, config, configs, addons, add-ons, node_modules, .venv, pyproject.toml, requirements.txt, package.json, Cargo.toml, and go.mod
+Result:
+  every named path was absent.
+
+Impact: no Git metadata, implementation directory, generated asset, dependency manifest/environment, configuration, or add-on was introduced. The recursive exact-entry result is stronger than these representative path probes and rules out differently named extras too.
+
+6. Adversarial findings
+
+stale_state: PASS — target listing, types, counts, hashes, stat metadata, xattrs, Git state, and staging state were freshly re-read during this audit rather than copied from Todo 4 claims.
+
+dirty_worktree: PASS WITH SCOPE NOTE — `git status --short` exited 0 and reported the existing top-level state:
+   M AGENTS.md
+   M README.md
+   D backup-obsidian-vault.sh
+  ?? .omo/
+  ?? "Icon\r"
+  ?? plugins/
+This matches the top-level dirty state recorded in Todo 1. Because Git collapses untracked directories, it is not used as proof of target contents. The target is outside this Git worktree and was independently enumerated recursively. This F4 task intentionally writes only this evidence descendant under `.omo/evidence/`.
+
+misleading_file_counts: PASS — line-based `ls`, `wc -l`, Git short status, and non-NUL parsing were not trusted. `find -print0` plus `read -d ''` counted and classified every recursive entry; `$'Icon\r'` remained one entry.
+
+partial_copy: PASS — both destination files exist, are non-empty regular files, and each independently passes cmp and SHA-256 matching against staging.
+
+scope_expansion: PASS — the exact recursive set contains three regular files and zero directories/symlinks/other entries; subtracting the Todo 1 baseline yields only README.md and AGENTS.md.
+
+misleading_success_output: PASS — conclusions rely on fresh content/type/count/hash/stat/xattr assertions and recorded exit codes, not on the earlier copy command's success message.
+
+7. Final verdict
+
+PASS — exactly README.md and AGENTS.md were added to the Todo 1 target state; their installed bytes match staging. Icon\r data, stat metadata, xattr names, lengths, and digests are unchanged. No directory, model, script, render, export, dependency, config, add-on, `.git`, symlink, or other target state was added.
+
+Cleanup: none needed. No target file, temporary target artifact, process, mount, or test directory was created by this audit.

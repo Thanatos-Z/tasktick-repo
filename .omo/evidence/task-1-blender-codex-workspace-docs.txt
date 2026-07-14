@@ -1,0 +1,92 @@
+Task 1 preflight — blender-codex-workspace-docs
+Captured: 2026-07-10 (Asia/Kathmandu)
+Scope: read-only inspection of "/Users/youzhi/workspace/blender space" and narrowly filtered local system facts.
+Redaction: local account/UID and unrelated system identifiers are omitted.
+
+RESULT: PASS
+
+1. Exact target listing (fresh read; control characters shell-escaped)
+Command: ls -laO "/Users/youzhi/workspace/blender space"
+Exit: 0
+Entries:
+  .                  directory, drwxr-xr-x@, 96 bytes, flags=-
+  ..                 directory, drwxr-xr-x@, 288 bytes, flags=-
+  $'Icon\r'           regular file, -rw-r--r--@, 0 bytes, flags=hidden
+
+Command: find "/Users/youzhi/workspace/blender space" -maxdepth 1 -type f -print0 (NUL-safe read/escaped print)
+Exit: 0
+File count: 1
+File: $'/Users/youzhi/workspace/blender space/Icon\r'
+
+README.md: ABSENT (test ! -e exit 0)
+AGENTS.md: ABSENT (test ! -e exit 0)
+Impact: the planned documents can be added without overwriting an existing target document.
+
+2. Target Git detection
+Command: git -C "/Users/youzhi/workspace/blender space" rev-parse --is-inside-work-tree
+Exit: 128
+Output meaning: not a Git repository and no parent Git repository was found.
+Impact: no target Git status exists; Git initialization/commit remains out of scope.
+
+3. Blender
+Command: "/Applications/Blender.app/Contents/MacOS/Blender" --version
+Exit: 0
+Version: Blender 5.1.2
+Build: release, Darwin, hash ec6e62d40fa9
+Note: the command also emitted a non-fatal ARCH_CACHE_LINE_SIZE warning; exit 0 and version output were still present.
+
+4. Hardware (narrowly filtered system_profiler)
+Command: system_profiler SPHardwareDataType SPDisplaysDataType | awk <allowlisted fields>
+system_profiler exit: 0
+Model: MacBook Pro (MacBookPro18,3)
+Chip: Apple M1 Pro
+CPU: 10 cores (8 performance, 2 efficiency)
+Memory: 32 GB
+GPU: Apple M1 Pro, 16 cores
+Note: system_profiler emitted a non-fatal hw.cpufamily fetch warning; requested allowlisted facts were returned with exit 0.
+
+5. Existing $'Icon\r' baseline
+Commands: ls -laO, file, shasum, stat, xattr (names only)
+Exits: ls=0, file=0, shasum=0, stat=0, xattr=0
+Type: empty regular file
+Size: 0 bytes
+Mode: -rw-r--r--
+Flags: hidden
+SHA-1: da39a3ee5e6b4b0d3255bfef95601890afd80709
+Modified: 2026-07-10T15:49:17+0545
+Changed (ctime): 2026-07-10T15:49:17+0545
+Birth: 2026-07-10T15:49:17+0545
+Inode: 17885086
+Extended attribute names: com.apple.FinderInfo, com.apple.ResourceFork, com.apple.provenance
+Extended attribute value fingerprints (raw values were never printed):
+  com.apple.FinderInfo: present-check exit 0; 32 bytes; length pipeline exit 0; SHA-1 fcc3496b956f59705afd6425b11230d0376de4e1; digest pipeline exit 0
+  com.apple.ResourceFork: present-check exit 0; 531408 bytes; length pipeline exit 0; SHA-1 9efca2bbf6086c80fc293f8f7b97ccb328bdf0f2; digest pipeline exit 0
+  com.apple.provenance: present-check exit 0; 11 bytes; length pipeline exit 0; SHA-1 0e2934b6d951285d41f7a60c08e5b5f9d2fe8b89; digest pipeline exit 0
+Fingerprint method: xattr -px <name> "$icon" | tr -d '[:space:]' | xxd -r -p, piped directly to wc -c or shasum; no decoded value was written to disk or stdout.
+Impact: this is the immutable baseline for the later post-install scope comparison.
+
+6. Adversarial probes and safety
+stale_state: PASS — target listing, document absence, file count, Git detection, hash, and stat were re-read immediately before this report.
+dirty_worktree audit:
+  Root-captured pre-delegation `git status --short` (provided to this worker):
+     M AGENTS.md
+     M README.md
+     D backup-obsidian-vault.sh
+    ?? .omo/
+    ?? "Icon\r"
+    ?? plugins/
+  Fresh post-report `git status --short` exit: 0
+  Fresh post-report top-level output:
+     M AGENTS.md
+     M README.md
+     D backup-obsidian-vault.sh
+    ?? .omo/
+    ?? "Icon\r"
+    ?? plugins/
+  Assessment: the pre- and post-report top-level status text is identical. These entries pre-date delegation and are outside the target Blender workspace; this worker did not intentionally modify them. Because Git collapses untracked directories to `?? .omo/` and `?? plugins/`, this comparison alone cannot prove that their descendants are byte-for-byte unchanged. The only authorized worker write is this evidence file under `.omo/evidence/`.
+  Fresh target-only listing: `ls -laO` exit 0; NUL-safe `find` exit 0; exactly one regular file, $'Icon\r'; README absence test exit 0; AGENTS absence test exit 0; Icon shasum exit 0 and SHA-1 unchanged.
+misleading_success_output: PASS — command exit results are recorded above, including expected Git exit 128 and non-fatal warning output.
+path-with-space: PASS — every target/Blender path was quoted; NUL-safe find identified the carriage-return filename exactly.
+
+Cleanup: no processes, temporary directories, mounts, or target files were created; nothing to clean up.
+Risk: Git short status collapses untracked directory descendants, so it cannot independently establish causality for every file below `.omo/` or `plugins/`. Later target verification should compare the recorded Icon data-fork SHA-1, size, mode, flags, mtime, ctime, birth time, inode, xattr name set, and each xattr value length/SHA-1 without modifying the file.

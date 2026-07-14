@@ -1,0 +1,90 @@
+Task 3 — Draft AGENTS.md as the durable Codex operating contract
+Captured: 2026-07-10 (Asia/Kathmandu)
+Artifact: /Users/youzhi/workspace/Scripts/.omo/staging/blender-codex-workspace-docs/AGENTS.md
+
+RESULT: PASS
+
+1. Baseline and scope
+- Todo 1 evidence was read before drafting: the target Blender workspace exists, is not a Git repository, and its target AGENTS.md was absent.
+- The plan, draft, parent /Users/youzhi/workspace/Scripts/AGENTS.md, Todo 1 evidence, and staged README.md were read.
+- Only the staged AGENTS.md and this evidence file were written by this worker.
+- The staged document says scripts/, references/, models/, renders/, and exports/ are on-demand conventions and does not claim they exist.
+
+2. Automated verification
+Command: file .omo/staging/blender-codex-workspace-docs/AGENTS.md
+Exit: 0
+Output: Unicode text, UTF-8 text
+
+Command: test -s .omo/staging/blender-codex-workspace-docs/AGENTS.md
+Exit: 0
+Observable: staged AGENTS.md exists and is non-empty.
+
+Command: rg -n '简体中文|修改前先检查|仅当.*Git 仓库|scripts/|references/|models/|renders/|exports/|脚本生成|人工编辑|版本后缀|明确批准|不可信.*\.blend|自动运行|不得全局安装|标准输出|标准错误|退出码非零|大小大于零|实际打开并检查|工作区外' .omo/staging/blender-codex-workspace-docs/AGENTS.md
+Exit: 0
+Observable: every required policy family was found.
+
+Command: if rg -n 'TODO|TBD|<fill|允许全局安装|应全局安装|可直接覆盖|无条件覆盖|启用未知.*自动|执行未知.*Python|退出码为零即可|无需检查.*输出|无需.*视觉检查' .omo/staging/blender-codex-workspace-docs/AGENTS.md; then exit 1; fi
+Exit: 0
+Observable: no placeholder or unsafe authorization wording was found.
+
+Command: sed -n '1,260p' .omo/staging/blender-codex-workspace-docs/AGENTS.md
+Exit: 0
+Observable: direct end-to-end read confirmed concise Simplified Chinese, consistent directory semantics, the fully quoted Blender command, and no unsupported environment claim.
+
+Negative-scan correction: an earlier overly broad negative expression matched the safe phrases “不得全局安装” and “退出码为零也不能单独证明成功”, causing exit 1. This was a verifier-pattern false positive, not a document defect. The final negative expression above targets only unsafe authorization wording and exits 0.
+
+3. Manual QA decision audit
+Scenario A — script-generated asset:
+- Input: an inspected workspace script scripts/create_chair.py previously generated models/chair_v001.blend and renders/chair_v001.png.
+- Required decision: treat create_chair.py as source of truth for those script-generated assets; do not overwrite v001; generate v002 names by default unless the user explicitly approves overwrite.
+- Required run/acceptance: use the quoted Blender --background --python form, retain stdout/stderr, record the process exit code, reject any nonzero exit, then confirm each expected v002 output exists and is larger than zero. Because chair appearance is visual, actually open and inspect the new preview before reporting it as qualified.
+- Verdict: unambiguous.
+
+Scenario B — hand-edited .blend:
+- Input: models/chair_final.blend contains user hand edits and may originate from an untrusted source with unknown embedded Python.
+- Required decision: preserve the file and do not claim a bpy script can reconstruct it; do not enable or execute its unknown embedded/auto-run Python. Create a separately named/versioned result by default, or obtain explicit user approval before overwriting the original.
+- Verdict: unambiguous.
+
+4. Adversarial QA
+- stale_state: PASS — the rules require checking the target before running, identifying the current expected path, and reject old files as proof of this run.
+- dirty_worktree: PASS — relevant git status is required only if the workspace is actually in a Git repository; existing uncommitted content must not be changed or overwritten. The Scripts repository was already dirty before this task, and no pre-existing tracked change was modified by this worker.
+- misleading_success: PASS — log success text and exit 0 alone are explicitly insufficient; correct output path, existence, and nonzero size are separately required.
+- unsafe_overwrite: PASS — new names/version suffixes are the default; overwriting .blend, render, or export output requires explicit approval.
+- untrusted_scripts: PASS — only inspected workspace scripts may run; unknown embedded or auto-run Python from an untrusted .blend must remain disabled and must not execute.
+- outside_workspace/destructive mutation: PASS — destructive operations and mutation, movement, or deletion outside the workspace are prohibited.
+
+5. Cleanup and risks
+Cleanup: no Blender process, temporary directory, model, render, export, dependency, or QA asset was created; nothing to tear down.
+Risk: this task drafts policy only. Installation into /Users/youzhi/workspace/blender space and behavior under a real Blender modeling task remain Todo 4/future execution responsibilities.
+
+DoneClaim:
+  task: Todo 3 — Draft AGENTS.md as the durable Codex operating contract
+  changed_files:
+    - /Users/youzhi/workspace/Scripts/.omo/staging/blender-codex-workspace-docs/AGENTS.md
+    - /Users/youzhi/workspace/Scripts/.omo/evidence/task-3-blender-codex-workspace-docs.txt
+  tests:
+    - file: exit 0, UTF-8 text
+    - test -s: exit 0
+    - required-policy rg: exit 0
+    - placeholder/unsafe negative rg: exit 0
+    - direct sed read: exit 0
+  manual_qa:
+    - script-generated versioned asset decision audit: PASS
+    - hand-edited untrusted .blend decision audit: PASS
+  cleanup:
+    - no processes or temporary artifacts created
+  risks:
+    - staged documentation is not yet installed in the target workspace
+
+SECURITY-FIX ADDENDUM — canonical containment and symlink rejection
+Captured: 2026-07-10 (Asia/Kathmandu)
+Status: STAGED GREEN
+
+- Root cause: the original policy prohibited workspace-external mutation but omitted canonical-path containment and default symlink rejection.
+- Minimal change: one bullet was added to staged AGENTS.md requiring, before writes, canonical resolution of the target path and existing parent directories, confirmation that the results remain within `/Users/youzhi/workspace/blender space/`, and default rejection of paths containing symlinks.
+- Failing-first proof: two complete RED rounds produced staged exit 1 and installed exit 1 each.
+- Toggle proof before installation: old installed exit 1; new staged exit 0; combined assertion exit 0.
+- Fresh staged verification: exact security policy exit 0; unsafe-wording negative scan exit 0; UTF-8/file exit 0; non-empty exit 0; complete policy families exit 0; no-contradiction evidence exit 0.
+- New staged SHA-256: `9737148b5f8065c5f01df861358d5bada6c868f7ba8b59b0ee132c6d113e86af`.
+- Detailed hypothesis, RED/GREEN, approval, scope, and cleanup evidence: `.omo/evidence/debug-symlink-path-rule.txt`.
+- Risk: installation was attempted only through a narrow elevated request, but automatic approval was rejected because the current usage limit was reached. No workaround was attempted; installed AGENTS.md therefore remains RED.

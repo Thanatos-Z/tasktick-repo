@@ -1,0 +1,75 @@
+Task 2 README draft — blender-codex-workspace-docs
+Captured: 2026-07-10 (Asia/Kathmandu)
+Artifact: /Users/youzhi/workspace/Scripts/.omo/staging/blender-codex-workspace-docs/README.md
+
+RESULT: PASS
+
+1. File validation
+Commands: file; test -s; wc -c
+Exits: all 0
+file output: Unicode text, UTF-8 text
+Size: 3407 bytes
+Impact: the staged README is non-empty UTF-8 Markdown.
+
+2. Required content assertions
+Command: targeted rg checks for headings and required facts
+Exit: 0
+Confirmed sections: 项目用途, 已验证环境, 按需目录约定, 工作流程, 任务输入清单, 能力边界, 故障排查.
+Confirmed environment wording: verified on 2026-07-10; Blender 5.1.2; Apple M1 Pro; 32 GB.
+Confirmed on-demand contract: the README explicitly says the directories are not currently created.
+Confirmed responsibilities:
+  scripts/     inspected repeatable bpy scripts
+  references/  input references
+  models/      .blend files
+  renders/     preview/final render images
+  exports/     exchange files
+Confirmed workflow: prompt/reference -> bpy script -> background Blender -> output existence check -> visual preview/export.
+Confirmed input checklist: object, dimensions, style, material, references, output format.
+Confirmed boundary: Codex + bpy is not presented as equivalent to Hyper3D/image-to-3D generation.
+Confirmed troubleshooting: missing Blender executable; Python exception/non-zero exit; spaces in paths; unavailable render engine/device; missing or empty output.
+Impact: every Todo 2 onboarding requirement is represented without claiming that future assets exist.
+
+3. Placeholder and forbidden-claim scan
+Final command: rg --pcre2 for TODO, TBD, <fill, template comments, affirmative already-created wording, affirmative one-click/equivalence wording, pricing/定价
+Expected/final result: no matches (rg exit 1 inside a guarded negative assertion; overall assertion exit 0).
+Notes on QA iteration:
+  - First scan falsely matched the negative sentence containing “不等同” and “不承诺…一键”.
+  - Second scan still falsely matched “即可一键” inside the same denial.
+  - The README was clarified to “不承诺仅凭一张图片直接得到同等结果”, and the final scan rejects only affirmative claims.
+Impact: no placeholder, pricing content, claim of existing directories, or one-click generative equivalence remains.
+
+4. Copyable command and path tokenization
+Documented command:
+  "/Applications/Blender.app/Contents/MacOS/Blender" --background --python "/Users/youzhi/workspace/blender space/scripts/create_model.py"
+Commands: bash -n -c <documented command>; bash -c with set -- and exact argument assertions
+Exits: both 0
+Parsed argv:
+  argc=4
+  arg1=/Applications/Blender.app/Contents/MacOS/Blender
+  arg2=--background
+  arg3=--python
+  arg4=/Users/youzhi/workspace/blender space/scripts/create_model.py
+Safety: create_model.py was not executed; set -- was used only to parse and inspect tokens.
+Impact: both paths containing spaces remain single shell arguments.
+
+5. Direct Markdown review
+Command: sed -n '1,260p' staged README
+Exit: 0
+Result: manually read end to end; headings, lists, ordered workflow, fenced sh command, punctuation, and directory semantics are concise and internally consistent Simplified Chinese.
+
+6. Adversarial checks
+stale_state: PASS — immediately after content QA, the target README remained absent and all five proposed target directories remained absent.
+dirty_worktree: PASS WITH PRE-EXISTING STATE — fresh git status still reports the pre-existing top-level entries:
+   M AGENTS.md
+   M README.md
+   D backup-obsidian-vault.sh
+  ?? .omo/
+  ?? "Icon\\r"
+  ?? plugins/
+Only the authorized staged README and this evidence file were written by this worker; unrelated working-tree entries were not modified.
+misleading_success: PASS — assertions checked exit status, non-empty output, and forbidden wording; the README explicitly says non-zero Blender exit or missing output cannot be reported as success.
+path_with_spaces: PASS — shell parsing retained the Blender executable path and workspace script path as intact arguments.
+target_preservation: PASS — the target still contains only $'Icon\r'; its data-fork SHA-1 remains da39a3ee5e6b4b0d3255bfef95601890afd80709.
+
+7. Scope
+No Blender process, target asset, target directory convention, dependency, Git operation, model, render, or export was created. The staged README is ready for Todo 4 review/install.

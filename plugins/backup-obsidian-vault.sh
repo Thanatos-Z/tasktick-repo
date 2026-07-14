@@ -46,9 +46,43 @@ require_command() {
 
 count_status() {
   local status_output="$1"
-  local pattern="$2"
+  local kind="$2"
+  local count=0
+  local line
+  local status
 
-  printf '%s\n' "$status_output" | awk -v pat="$pattern" 'substr($0, 1, 2) ~ pat { count++ } END { print count + 0 }'
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+
+    status="${line:0:2}"
+    case "$kind" in
+      added)
+        if [ "$status" = "??" ] || [[ "$status" == *A* ]]; then
+          count=$((count + 1))
+        fi
+        ;;
+      modified)
+        if [[ "$status" == *M* ]]; then
+          count=$((count + 1))
+        fi
+        ;;
+      deleted)
+        if [[ "$status" == *D* ]]; then
+          count=$((count + 1))
+        fi
+        ;;
+      renamed)
+        if [[ "$status" == *R* ]]; then
+          count=$((count + 1))
+        fi
+        ;;
+      *)
+        error_exit "Unknown status count kind: $kind"
+        ;;
+    esac
+  done <<< "$status_output"
+
+  printf '%s\n' "$count"
 }
 
 finish() {
@@ -72,7 +106,6 @@ CURRENT_STEP="checking dependencies"
 require_command git
 require_command rsync
 require_command mktemp
-require_command awk
 log "OK" "Dependencies available"
 
 CURRENT_STEP="checking vault directory"
@@ -134,10 +167,10 @@ if [ -z "$STATUS_OUTPUT" ]; then
 fi
 
 TOTAL_CHANGES="$(printf '%s\n' "$STATUS_OUTPUT" | sed '/^$/d' | wc -l | tr -d ' ')"
-ADDED_CHANGES="$(count_status "$STATUS_OUTPUT" '(\?\?|A)')"
-MODIFIED_CHANGES="$(count_status "$STATUS_OUTPUT" 'M')"
-DELETED_CHANGES="$(count_status "$STATUS_OUTPUT" 'D')"
-RENAMED_CHANGES="$(count_status "$STATUS_OUTPUT" 'R')"
+ADDED_CHANGES="$(count_status "$STATUS_OUTPUT" "added")"
+MODIFIED_CHANGES="$(count_status "$STATUS_OUTPUT" "modified")"
+DELETED_CHANGES="$(count_status "$STATUS_OUTPUT" "deleted")"
+RENAMED_CHANGES="$(count_status "$STATUS_OUTPUT" "renamed")"
 OTHER_CHANGES="$((TOTAL_CHANGES - ADDED_CHANGES - MODIFIED_CHANGES - DELETED_CHANGES - RENAMED_CHANGES))"
 
 log "INFO" "Changes detected: total=${TOTAL_CHANGES}, added=${ADDED_CHANGES}, modified=${MODIFIED_CHANGES}, deleted=${DELETED_CHANGES}, renamed=${RENAMED_CHANGES}, other=${OTHER_CHANGES}"

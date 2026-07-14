@@ -1,0 +1,139 @@
+Final F1 plan compliance audit — blender-codex-workspace-docs
+Captured: 2026-07-10 (Asia/Kathmandu)
+Reviewer role: independent final plan-compliance reviewer
+Privacy: local account name and absolute user paths are redacted. In commands below, TARGET means the requested Blender workspace and STAGE means the reviewed staging directory.
+
+VERDICT: PASS
+
+Sources read end to end
+- .omo/plans/blender-codex-workspace-docs.md (107 lines)
+- installed TARGET/README.md (54 lines)
+- installed TARGET/AGENTS.md (44 lines)
+- .omo/evidence/task-1-blender-codex-workspace-docs.txt
+- .omo/evidence/task-2-blender-codex-workspace-docs.txt
+- .omo/evidence/task-3-blender-codex-workspace-docs.txt
+- .omo/evidence/task-4-blender-codex-workspace-docs.txt
+Exact commands:
+  wc -l .omo/plans/blender-codex-workspace-docs.md "$TARGET/README.md" "$TARGET/AGENTS.md" .omo/evidence/task-*-blender-codex-workspace-docs.txt
+  sed -n '1,260p' .omo/plans/blender-codex-workspace-docs.md
+  sed -n '1,260p' "$TARGET/README.md"
+  sed -n '1,300p' "$TARGET/AGENTS.md"
+  for f in .omo/evidence/task-*-blender-codex-workspace-docs.txt; do sed -n '1,260p' "$f"; done
+
+Must-have criteria
+
+MH1 PASS — exact installed filenames are README.md and AGENTS.md; both are non-empty, valid UTF-8 Markdown.
+Commands:
+  test -s "$TARGET/README.md"
+  test -s "$TARGET/AGENTS.md"
+  file -I "$TARGET/README.md" "$TARGET/AGENTS.md"
+  iconv -f UTF-8 -t UTF-8 "$TARGET/README.md" >/dev/null
+  iconv -f UTF-8 -t UTF-8 "$TARGET/AGENTS.md" >/dev/null
+Observed: all four test/iconv exits were 0; file reported charset=utf-8 for both. The installed files byte-match STAGE (cmp -s exits 0); SHA-256 values match task-4 evidence.
+Impact: the two required deliverables are installed under the exact requested names and are readable as UTF-8.
+
+MH2 PASS — README covers every required onboarding topic.
+Direct-review evidence:
+  purpose: "项目用途"
+  verified environment: "已验证环境", dated verification, Blender 5.1.2, and a --version command
+  future directory convention: explicitly says the five directories are not currently created and are created on demand
+  responsibilities: scripts/ -> inspected bpy scripts; references/ -> inputs; models/ -> .blend; renders/ -> previews/renders; exports/ -> exchange files
+  workflow: request/reference -> bpy script -> background Blender -> exit/log/output checks -> visual preview and delivery
+  quoted background command: both paths containing spaces are double-quoted
+  request format: object, dimensions, style, material, references, output format
+  capability boundary: explicitly says Codex + bpy is not equivalent to Hyper3D image-to-3D generation
+  troubleshooting: missing executable, Python exception/nonzero exit, spaces in paths, unavailable renderer/device, and missing output
+Exact assertion command form (run once per required pattern):
+  rg -q -- "$pattern" "$TARGET/README.md"
+Observed: every required README pattern exited 0.
+Impact: a user can understand the workspace, provide a usable request, run the documented workflow, and diagnose the named failure modes without unsupported capability claims.
+
+MH3 PASS — AGENTS covers every required operating rule.
+Direct-review evidence:
+  scope and Simplified-Chinese communication; inspect before edit
+  scripts are authoritative only for script-generated assets
+  hand-edited .blend files, user materials, and manual changes must be preserved
+  new/version-suffixed output by default; explicit approval before overwriting .blend, render, or export output
+  only inspected workspace scripts may run; unknown embedded/auto-run Python from untrusted .blend files stays disabled
+  exact on-demand responsibilities for scripts/, references/, models/, renders/, exports/
+  no global package/plugin/system-dependency installation; approval required for an isolated workspace solution
+  retain stdout/stderr, inspect traceback, record exit code, reject nonzero exit
+  verify current expected output path, existence, and nonzero size; stale files and success text are insufficient
+  visual work requires opening and inspecting a newly generated preview
+  concise final report requirements and prohibition on destructive/out-of-workspace changes
+Exact assertion command form (run once per required pattern):
+  rg -q -- "$pattern" "$TARGET/AGENTS.md"
+Observed: every required AGENTS pattern exited 0.
+Impact: future Codex runs have clear preservation, trust, overwrite, execution, verification, and delivery constraints.
+
+MH4 PASS — Icon carriage-return filename and all recorded content/metadata remain unchanged.
+Commands:
+  ICON="$TARGET/"$'Icon\r'
+  test -f "$ICON"
+  shasum "$ICON"
+  stat -f '%z|%Sp|%Sf|%m|%c|%B|%i' "$ICON"
+  xattr "$ICON" | LC_ALL=C sort | paste -sd, -
+  xattr -px "$name" "$ICON" | tr -d '[:space:]' | xxd -r -p | wc -c
+  xattr -px "$name" "$ICON" | tr -d '[:space:]' | xxd -r -p | shasum
+Observed against task-1 and task-4 baselines:
+  exact name exists; size 0; mode -rw-r--r--; hidden flag; mtime/ctime/birth/inode all match
+  data-fork SHA-1 matches the baseline
+  xattr names match: FinderInfo, ResourceFork, provenance
+  all three xattr byte lengths and SHA-1 fingerprints match the baselines
+Impact: the pre-existing Finder icon metadata carrier was preserved, including resource-fork state that a plain zero-byte hash alone would not prove.
+
+Must-not-have criteria
+
+MN1 PASS — no extra target directory, model, script, render, export, dependency file, add-on, or configuration file exists.
+Commands:
+  find "$TARGET" -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' p; do printf '%q\n' "${p##*/}"; done
+  find "$TARGET" -mindepth 1 -maxdepth 1 -type f -print0 | tr -cd '\0' | wc -c
+  find "$TARGET" -mindepth 1 -maxdepth 1 -type d -print0 | tr -cd '\0' | wc -c
+  find "$TARGET" -mindepth 1 -maxdepth 1 \( -type d -o -name package.json -o -name pyproject.toml -o -name requirements.txt -o -name uv.lock -o -name Cargo.toml -o -name go.mod -o -name '*.blend' -o -name '*.py' -o -name '*.png' -o -name '*.jpg' -o -name '*.glb' -o -name '*.fbx' -o -name '*.obj' -o -name '*.stl' \) -print -quit
+Observed: the exact NUL-safe allowlist is $'Icon\r', README.md, AGENTS.md; file count=3, directory count=0, forbidden asset/dependency search has no output.
+Impact: only the two planned documents were added to the target; no operational or generated asset state was introduced.
+
+MN2 PASS — no Git repository, Git metadata, commit, or push exists in the target.
+Commands:
+  test ! -e "$TARGET/.git"
+  git -C "$TARGET" rev-parse --is-inside-work-tree
+Observed: .git absence test exit 0; rev-parse exit 128, the expected not-a-repository result.
+Impact: the target remains a plain local workspace and the no-Git scope boundary is intact.
+
+MN3 PASS — installed docs do not claim future directories already exist.
+Evidence: README says they are "目前尚未创建" and on demand; AGENTS says the convention "不代表已经存在".
+Command:
+  rg -n '目前尚未创建|不代表已经存在' "$TARGET/README.md" "$TARGET/AGENTS.md"
+Impact: onboarding does not misrepresent current filesystem state.
+
+MN4 PASS — no affirmative generative-equivalence claim and no volatile pricing/specification table.
+Commands:
+  rg -ni -- '价格|定价|价目|一键图像转.?3D' "$TARGET/README.md" "$TARGET/AGENTS.md"
+  rg -n --pcre2 '(?<!不)等同于.{0,60}图像转.?3D' "$TARGET/README.md" "$TARGET/AGENTS.md"
+Observed: both searches exit 1 (no matches). The actual boundary sentence is explicitly negative: Codex + bpy is not equivalent to Hyper3D image-to-3D generation.
+Impact: the docs avoid misleading product positioning and information likely to become stale.
+
+MN5 PASS — no case-variant README and no placeholders or unsafe authorization wording.
+Command:
+  rg -ni -- 'TODO|TBD|<fill|template comment|READMe\.md|允许全局安装|无条件覆盖|可直接覆盖|启用.*未知.*自动运行|执行.*未知.*Python' "$TARGET/README.md" "$TARGET/AGENTS.md"
+Observed: exit 1 (no matches); exact directory allowlist independently confirms only README.md.
+Impact: deliverables are complete and do not silently authorize unsafe behavior.
+
+Adversarial and state audit
+
+stale_state PASS — the installed files, exact NUL-safe target listing, UTF-8/non-empty checks, Git absence, Icon hash/stat/xattrs, and forbidden scans were all freshly re-read during F1 after task-4. A final snapshot again reported exactly three files and zero directories.
+
+dirty_worktree PASS WITH INFORMATIONAL SCOPE NOTE — `git status --short` in the separate Scripts repository reports pre-existing tracked modifications/deletion plus untracked .omo/, Icon carriage-return, and plugins/. The status is not clean and untracked directories are collapsed, so it cannot prove descendant causality. F1 intentionally writes only this evidence file; it does not edit target documents or pre-existing tracked files. The target is outside that Git repository and its exact allowlist is independently verified.
+Command:
+  git status --short
+Operational impact: none on target compliance; reviewers must not describe the Scripts repository as clean.
+
+misleading_success PASS — no success-text-only conclusion was accepted. During audit:
+  1. `rg -q "$pattern"` failed when the pattern began with --background; corrected to `rg -q -- "$pattern"` and rerun.
+  2. A broad negative regex matched the safe phrase "不等同于"; corrected to `(?<!不)等同于...` and rerun.
+  3. `tee /dev/stderr` was blocked by sandbox permissions and the pipeline lacked pipefail; that UTF-8 sub-result was rejected. Independent file -I and iconv checks then both returned success.
+  4. A zsh loop used `set -- $spec`; zsh did not split the scalar, so xattr received the whole row as one attribute name and failed. That output was rejected. A Bash `set -euo pipefail` check with three explicit `check_xattr name length digest` calls then passed for all attributes.
+Impact: these were verifier defects/restrictions, not document defects; recording them prevents false confidence from masked or misclassified command results.
+
+Final reviewer decision
+PASS — every plan Must have is represented in the installed documents or preserved target state; every Must NOT have is absent from installed content and target state. No target edit was made by F1. No uncertainty remains for plan compliance. F2/F3/F4 are separate final-wave reviews and are not claimed by this evidence.

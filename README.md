@@ -1,14 +1,14 @@
-# tasktick-repo
+# Tasktick 脚本仓库
 
-Tasktick-friendly local automation scripts.
+适合 Tasktick 和手动运行的本地自动化脚本。
 
-## Scripts
+## 脚本
 
-### `backup-obsidian-vault.sh`
+### `plugins/backup-obsidian-vault.sh`
 
-Backs up the Obsidian iCloud vault to GitHub without modifying the original vault directory.
+将 Obsidian iCloud Vault 备份到 GitHub，不修改原始 vault 目录。
 
-Default configuration is kept at the top of the script:
+默认配置保留在脚本顶部：
 
 ```sh
 VAULT="/Users/youzhi/Library/Mobile Documents/iCloud~md~obsidian/Documents/youzhi"
@@ -16,25 +16,112 @@ REPO="https://github.com/Thanatos-Z/my-obsidian.git"
 BRANCH="main"
 ```
 
-Run manually:
+手动运行：
 
 ```sh
-/Users/youzhi/workspace/Scripts/backup-obsidian-vault.sh
+/Users/youzhi/workspace/Scripts/plugins/backup-obsidian-vault.sh
 ```
 
-The script:
+脚本行为：
 
-- creates a temporary directory with `mktemp -d`
-- clones the GitHub backup repository into the temporary directory
-- uses `rsync` to sync the Obsidian vault into the temporary Git worktree
-- excludes Obsidian workspace/cache files, trash folders, `.DS_Store`, and temporary swap files
-- commits and pushes only when changes exist
-- prints Tasktick-readable status lines such as `[START]`, `[OK]`, `[NO_CHANGES]`, `[SUCCESS]`, `[FAIL]`, `[CLEANUP]`, and `[END]`
-- removes the temporary directory on exit
+- 使用 `mktemp -d` 创建临时目录
+- 将 GitHub 备份仓库 clone 到临时目录
+- 使用 `rsync` 将 Obsidian vault 同步到临时 Git 工作区
+- 排除 Obsidian workspace/cache 文件、废纸篓目录、`.DS_Store` 和临时 swap 文件
+- 只有检测到变化时才 commit 和 push
+- 输出 Tasktick 可读的状态行，例如 `[START]`、`[OK]`、`[NO_CHANGES]`、`[SUCCESS]`、`[FAIL]`、`[CLEANUP]`、`[END]`
+- 退出时删除临时目录
 
-## Safety Notes
+### `plugins/codex-trace-suppression.sh`
 
-- Do not initialize Git inside the Obsidian vault.
-- Do not write files into the Obsidian vault from backup scripts.
-- Keep credentials, tokens, private keys, and `.env` files out of this repository.
-- Prefer small scripts with explicit status output so Tasktick logs are easy to inspect.
+为 Codex 日志数据库安装或删除 SQLite trigger，用于控制新的 `TRACE` 日志是否写入 `logs` 表。
+
+手动运行：
+
+```sh
+/Users/youzhi/workspace/Scripts/plugins/codex-trace-suppression.sh
+```
+
+无参数运行时，脚本会优先通过 macOS 弹窗选择启用或停用。也可以传入明确动作：
+
+```sh
+/Users/youzhi/workspace/Scripts/plugins/codex-trace-suppression.sh enable
+/Users/youzhi/workspace/Scripts/plugins/codex-trace-suppression.sh disable
+/Users/youzhi/workspace/Scripts/plugins/codex-trace-suppression.sh status
+```
+
+TaskTick 当前公开源码里没有看到独立的“运行前选项参数”字段；脚本文件任务会读取文件内容后通过 shell 运行。要在 TaskTick 里固定动作，可以设置环境变量：
+
+```sh
+TRACE_SUPPRESSION_ACTION=enable
+TRACE_SUPPRESSION_ACTION=disable
+TRACE_SUPPRESSION_ACTION=status
+```
+
+Codex TRACE 脚本默认操作：
+
+```sh
+$HOME/.codex/logs_2.sqlite
+```
+
+如需指定其他数据库，可传入 `DB_PATH`：
+
+```sh
+DB_PATH="/path/to/logs_2.sqlite" /Users/youzhi/workspace/Scripts/plugins/codex-trace-suppression.sh enable
+```
+
+### `plugins/merge_audio_video.sh`
+
+在 macOS 上通过图形化窗口依次选择视频、音频和输出位置，将两者合并为 MP4 文件，并使用 swiftDialog 显示处理进度。文件选择和保存窗口由 Finder 承载，可正常使用 `⌘V`、`⌘A`、`⌘⇧G` 等系统快捷键。
+
+依赖：
+
+```sh
+brew install ffmpeg
+brew install --cask swiftdialog
+```
+
+手动运行：
+
+```sh
+/Users/youzhi/workspace/Scripts/plugins/merge_audio_video.sh
+```
+
+脚本会优先直接复制音视频流；如果格式不兼容，则依次尝试将音频转换为 AAC，或将视频和音频完整转换为 H.264 与 AAC。输出时长取视频和音频中较短的一方。处理完成后，脚本会在 Finder 中选中生成的 MP4 文件。
+
+### `plugins/extract_audio_from_video.sh`
+
+从视频的第一条音轨导出 MP3 文件，默认使用 192 kbps。依赖 `ffmpeg` 和 `ffprobe`：
+
+```sh
+brew install ffmpeg
+```
+
+无参数运行时会在 macOS 上打开由 Finder 承载的文件选择框，可正常使用 `⌘V`、`⌘A`、`⌘⇧G` 等系统快捷键：
+
+```sh
+/Users/youzhi/workspace/Scripts/plugins/extract_audio_from_video.sh
+```
+
+也可直接传入路径，适合终端或自动化任务：
+
+```sh
+/Users/youzhi/workspace/Scripts/plugins/extract_audio_from_video.sh video.mp4
+/Users/youzhi/workspace/Scripts/plugins/extract_audio_from_video.sh video.mp4 audio.mp3
+```
+
+输出文件已存在时脚本默认停止，明确传入 `--force` 才会覆盖。
+
+## 安全注意事项
+
+- 不要在 Obsidian vault 内初始化 Git。
+- 备份脚本不要向 Obsidian vault 写入文件。
+- 不要将凭据、token、私钥和 `.env` 文件放入本仓库。
+- 优先写小脚本，并输出明确状态，方便检查 Tasktick 日志。
+
+## 新脚本约定
+
+- 脚本可能由 Tasktick 运行，因此每个有意义的步骤都应输出简洁状态行。
+- 使用稳定的状态前缀，例如 `[START]`、`[INFO]`、`[OK]`、`[NO_CHANGES]`、`[SUCCESS]`、`[FAIL]`、`[CLEANUP]`、`[END]`。
+- 错误输出应尽量说明失败步骤和退出码。
+- 需要依赖的 Python 脚本应使用项目本地虚拟环境，优先用 `uv venv` 创建。
