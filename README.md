@@ -4,6 +4,35 @@
 
 ## 脚本
 
+### `plugins/ssh-port-forward-manager.sh`
+
+通过 macOS 弹窗管理一组持久化的 SSH 本地端口转发。默认使用 `~/.ssh/config` 中的 `cloud` 主机配置，因此服务器的 SSH 端口仍由 `cloud` 配置中的 `Port 8022` 决定。
+
+手动运行：
+
+```sh
+/Users/youzhi/workspace/Scripts/plugins/ssh-port-forward-manager.sh
+```
+
+弹窗支持添加端口、删除端口、查看已保存端口、连接全部端口、查看当前连接和断开连接。“查看当前连接”会显示隧道是否在线，以及本次连接实际采用的端口。端口默认保存在：
+
+```text
+~/.config/ssh-port-forward-manager/ports
+```
+
+也可以从命令行操作：
+
+```sh
+plugins/ssh-port-forward-manager.sh add 9090
+plugins/ssh-port-forward-manager.sh remove 9090
+plugins/ssh-port-forward-manager.sh list
+plugins/ssh-port-forward-manager.sh status
+plugins/ssh-port-forward-manager.sh connect
+plugins/ssh-port-forward-manager.sh disconnect
+```
+
+每个端口使用相同的本地和服务器端口，例如保存 `9090` 会建立 `127.0.0.1:9090 -> cloud:127.0.0.1:9090`。脚本不会修改服务器防火墙，也不会将端口开放给局域网或公网；它只在本机回环地址上建立 SSH 隧道。出于安全和系统限制，脚本不支持一次转发全部 `1-65535` 端口。
+
 ### `plugins/backup-obsidian-vault.sh`
 
 将 Obsidian iCloud Vault 备份到 GitHub，不修改原始 vault 目录。
