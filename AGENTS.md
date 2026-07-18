@@ -34,6 +34,36 @@
 - 状态前缀优先使用 `[START]`、`[INFO]`、`[OK]`、`[NO_CHANGES]`、`[SUCCESS]`、`[FAIL]`、`[CLEANUP]`、`[END]`。
 - 失败时输出具体失败步骤、退出码，避免只给模糊错误。
 - 有临时目录时使用 `mktemp -d` 和 `trap` 自动清理。
+- 临时环境变量不得泄漏到调用者环境。优先使用 `VAR=value command` 或子 shell 限定作用域；确需 `export` 时，脚本结束前必须恢复调用者原值或 `unset`。不要只依赖 TaskTick 子进程退出时的系统清理；脚本还应兼容直接执行、`source` 和通过标准输入交给 shell 的场景。
+- 环境变量可能包含凭据时，不要通过 `set -x`、状态输出或错误信息打印变量值。
+
+## TaskTick CLI 注册规则
+
+- 新脚本实现并完成最小相关验证后，使用 TaskTick CLI 直接注册，不再要求用户进入 TaskTick 图形界面手动创建。
+- 注册前先确认 `tasktick` 可用，并运行 `tasktick list --filter all --json` 检查同名任务。TaskTick CLI 不按名称或脚本路径去重；同名任务已存在时不要再次创建，应报告现有任务并停止注册。
+- 默认创建手动任务，使用 `--manual`；只有用户明确给出调度要求时才使用 `--repeat` 和 `--at`。
+- `--shell` 必须与脚本 shebang 和实际语法一致：Bash 脚本使用 `/bin/bash`，Zsh 脚本使用 `/bin/zsh`。不要仅依赖 TaskTick 的默认 shell。
+- 仓库内 `plugins/` 脚本注册时必须明确设置：
+
+```sh
+--cwd "/Users/youzhi/workspace/Scripts/plugins"
+```
+
+- 超时应按脚本行为明确设置；普通短任务默认使用 `--timeout 300`，确实需要更长时间时使用经过验证的值。
+- 创建时使用绝对脚本路径和 `--json`，成功后再次运行 `tasktick list --filter all --json`，确认任务名称、启用状态和 `manual` 类型。
+- Bash 脚本的标准注册命令示例：
+
+```sh
+tasktick create "任务名称" \
+  --script "/Users/youzhi/workspace/Scripts/plugins/example.sh" \
+  --shell /bin/bash \
+  --cwd "/Users/youzhi/workspace/Scripts/plugins" \
+  --timeout 300 \
+  --manual \
+  --json
+```
+
+- 注册是对本机 TaskTick 数据的写操作。以上规则授权在新脚本验证通过后创建对应任务，但不授权删除、重建或修改已有任务；涉及已有任务时先报告差异。
 
 ## Obsidian 备份规则
 

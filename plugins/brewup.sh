@@ -18,7 +18,8 @@ usage() {
 Usage: $0
 
 Update, upgrade, and clean Homebrew packages. A Finder-hosted macOS dialog
-asks whether to enable the proxy before maintenance starts.
+asks whether to set proxy environment variables before maintenance starts.
+System and Shadowrocket/TUN routing are not changed.
 
 Environment:
   PROXY_URL    Proxy used when enabled. Default: $PROXY_URL
@@ -29,10 +30,10 @@ select_proxy_mode() {
   /usr/bin/osascript <<'APPLESCRIPT'
 tell application "Finder"
     activate
-    set selectedItem to choose from list {"开启代理", "不使用代理"} ¬
+    set selectedItem to choose from list {"设置 Homebrew 环境代理", "不设置环境代理（沿用系统/Shadowrocket 路由）"} ¬
         with title "Homebrew 维护" ¬
-        with prompt "是否开启代理？" ¬
-        default items {"不使用代理"} ¬
+        with prompt "请选择 Homebrew 的代理环境变量模式：" ¬
+        default items {"不设置环境代理（沿用系统/Shadowrocket 路由）"} ¬
         OK button name "继续" ¬
         cancel button name "取消"
 end tell
@@ -127,13 +128,18 @@ if ! proxy_mode="$(select_proxy_mode)"; then
 fi
 
 case "$proxy_mode" in
-  "开启代理")
+  "设置 Homebrew 环境代理")
+    unset all_proxy ALL_PROXY
     export http_proxy="$PROXY_URL"
     export https_proxy="$PROXY_URL"
-    log "INFO" "Proxy enabled: $PROXY_URL"
+    export HTTP_PROXY="$PROXY_URL"
+    export HTTPS_PROXY="$PROXY_URL"
+    log "INFO" "Homebrew proxy environment enabled: $PROXY_URL"
     ;;
-  "不使用代理")
-    log "INFO" "Proxy disabled"
+  "不设置环境代理（沿用系统/Shadowrocket 路由）")
+    unset http_proxy https_proxy all_proxy
+    unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
+    log "INFO" "Proxy environment variables cleared; system/Shadowrocket routing unchanged"
     ;;
   cancel)
     log "END" "Cancelled before Homebrew maintenance started"

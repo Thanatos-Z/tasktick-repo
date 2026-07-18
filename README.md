@@ -154,3 +154,28 @@ brew install ffmpeg
 - 使用稳定的状态前缀，例如 `[START]`、`[INFO]`、`[OK]`、`[NO_CHANGES]`、`[SUCCESS]`、`[FAIL]`、`[CLEANUP]`、`[END]`。
 - 错误输出应尽量说明失败步骤和退出码。
 - 需要依赖的 Python 脚本应使用项目本地虚拟环境，优先用 `uv venv` 创建。
+- 临时环境变量优先通过 `VAR=value command` 或子 shell 限定作用域；确需 `export` 时，脚本结束前必须恢复原值或执行 `unset`。不要在日志中打印凭据或其他敏感变量值。
+
+## 使用 CLI 加入 TaskTick
+
+新脚本完成并通过相关验证后，直接使用 TaskTick CLI 注册，默认创建手动任务，无需再进入 TaskTick 图形界面创建。注册前必须通过 `tasktick list --filter all --json` 检查同名任务，避免重复创建。
+
+Bash 脚本示例：
+
+```sh
+tasktick create "任务名称" \
+  --script "/Users/youzhi/workspace/Scripts/plugins/example.sh" \
+  --shell /bin/bash \
+  --cwd "/Users/youzhi/workspace/Scripts/plugins" \
+  --timeout 300 \
+  --manual \
+  --json
+```
+
+Zsh 脚本将 `--shell` 改为 `/bin/zsh`。`--shell` 应与脚本 shebang 和实际语法一致；只有明确需要定时运行时，才用 `--repeat` 和 `--at` 代替 `--manual`。创建后再次运行：
+
+```sh
+tasktick list --filter all --json
+```
+
+确认任务已启用且类型为 `manual`。TaskTick CLI 当前不会按任务名或脚本路径去重，也不提供已有任务的更新命令，因此不要通过重复执行 `create` 来修改任务。
